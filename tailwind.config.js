@@ -8,18 +8,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#13b6ec",
-        "background-light": "#f6f8f8",
-        "background-dark": "#101d22",
+        primary: "#2463eb",
+        "primary-dark": "#1d4ed8",
+        "primary-light": "#3b82f6",
+        "background-light": "#f6f6f8",
+        "background-dark": "#111621",
       },
       fontFamily: {
-        display: ["Public Sans", "sans-serif"],
+        sans: ["Inter", "sans-serif"],
       },
       borderRadius: {
         DEFAULT: "0.25rem",
         lg: "0.5rem",
         xl: "0.75rem",
-        full: "9999px",
       },
     },
   },
