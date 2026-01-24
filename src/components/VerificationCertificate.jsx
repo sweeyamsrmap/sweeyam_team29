@@ -46,12 +46,12 @@ function VerificationCertificate({ submission, onClose }) {
           <div className="flex justify-center mb-8">
             <div className="bg-white p-4 rounded-xl border-4 border-emerald-600 shadow-lg shadow-emerald-500/50">
               <QRCodeSVG
-                value={getExplorerUrl(submission.txHash)}
+                value={submission.txHash}
                 size={200}
                 level="H"
                 includeMargin={true}
               />
-              <p className="text-center text-xs text-slate-600 mt-2">Scan to verify on blockchain</p>
+              <p className="text-center text-xs text-slate-600 mt-2">Scan to verify • TX: {submission.txHash?.slice(0, 10)}...</p>
             </div>
           </div>
 

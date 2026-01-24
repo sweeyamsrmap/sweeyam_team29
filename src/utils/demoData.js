@@ -1,6 +1,16 @@
 // Demo data generator for hackathon presentation
 // This provides realistic sample data to make the app look populated
 
+// Helper to generate proper 64-char hex hash
+const generateHash = () => {
+  const chars = '0123456789abcdef'
+  let hash = '0x'
+  for (let i = 0; i < 64; i++) {
+    hash += chars[Math.floor(Math.random() * chars.length)]
+  }
+  return hash
+}
+
 export const generateDemoSubmissions = () => {
   const companies = [
     'EcoCorp Logistics', 'GreenTech Industries', 'Sustainable Solutions Inc',
@@ -18,10 +28,10 @@ export const generateDemoSubmissions = () => {
 
     submissions.push({
       id: `demo-${i}`,
-      transactionHash: `0x${Math.random().toString(16).substr(2, 40)}`,
-      recordHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+      transactionHash: generateHash(),
+      recordHash: generateHash(),
       timestamp: timestamp.toISOString(),
-      network: 'ESGChain L2 Mainnet',
+      network: 'Sepolia Testnet',
       blockNumber: 5000000 + Math.floor(Math.random() * 100000),
       gasUsed: `0.00${Math.floor(Math.random() * 99)}`,
       data: {

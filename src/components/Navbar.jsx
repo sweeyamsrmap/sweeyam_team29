@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 
 function Navbar() {
   const location = useLocation()
-  
+
   const isActive = (path) => location.pathname === path
 
   return (
@@ -19,21 +19,37 @@ function Navbar() {
           <div className="hidden md:flex items-center gap-1">
             <Link
               to="/dashboard"
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive('/dashboard') 
-                  ? 'bg-blue-50 text-blue-600' 
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive('/dashboard')
+                  ? 'bg-blue-50 text-blue-600'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
+                }`}
             >
               Dashboard
             </Link>
             <Link
-              to="/admin"
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive('/admin') 
-                  ? 'bg-blue-50 text-blue-600' 
+              to="/submit"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive('/submit')
+                  ? 'bg-blue-50 text-blue-600'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
+                }`}
+            >
+              Submit Data
+            </Link>
+            <Link
+              to="/history"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive('/history')
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+            >
+              History
+            </Link>
+            <Link
+              to="/admin"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive('/admin')
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
             >
               Admin
             </Link>

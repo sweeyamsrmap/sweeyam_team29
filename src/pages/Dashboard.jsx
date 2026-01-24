@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useWallet } from '../hooks/useWallet'
 import WalletConnect from '../components/WalletConnect'
+import { getExplorerUrl, verifyESGData } from '../utils/blockchain'
 
 function Dashboard() {
   const { isConnected } = useWallet()
@@ -11,6 +12,11 @@ function Dashboard() {
     totalEmissions: 0,
     uniqueCompanies: 0
   })
+  const [showVerifyModal, setShowVerifyModal] = useState(false)
+  const [verifyHash, setVerifyHash] = useState('')
+  const [verifyResult, setVerifyResult] = useState(null)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [verifyError, setVerifyError] = useState(null)
 
   // Load real statistics from localStorage
   useEffect(() => {
@@ -35,6 +41,60 @@ function Dashboard() {
       clearInterval(interval)
     }
   }, [])
+
+  const handleVerify = async () => {
+    if (!verifyHash.trim()) return
+
+    setIsVerifying(true)
+    setVerifyError(null)
+    setVerifyResult(null)
+
+    try {
+      // First check localStorage for matching submission
+      const submissions = JSON.parse(localStorage.getItem('esg_submissions') || '[]')
+      const found = submissions.find(s =>
+        s.txHash?.toLowerCase() === verifyHash.toLowerCase() ||
+        s.recordHash?.toLowerCase() === verifyHash.toLowerCase()
+      )
+
+      if (found) {
+        setVerifyResult({
+          verified: true,
+          company: found.company,
+          emissions: found.emissions,
+          date: found.date,
+          txHash: found.txHash,
+          blockNumber: found.blockNumber
+        })
+      } else {
+        // Try blockchain verification if connected
+        if (isConnected) {
+          try {
+            const result = await verifyESGData(verifyHash)
+            if (result.verified) {
+              setVerifyResult({
+                verified: true,
+                company: result.data.companyName,
+                emissions: result.data.emissions,
+                date: result.timestamp,
+                txHash: verifyHash
+              })
+            } else {
+              setVerifyError('Record not found on blockchain')
+            }
+          } catch (err) {
+            setVerifyError('Record not found in local storage. Connect wallet to verify on-chain.')
+          }
+        } else {
+          setVerifyError('Record not found. Connect wallet to verify on blockchain.')
+        }
+      }
+    } catch (err) {
+      setVerifyError('Error verifying record: ' + err.message)
+    } finally {
+      setIsVerifying(false)
+    }
+  }
 
   const stats = [
     {
@@ -75,7 +135,7 @@ function Dashboard() {
             <p className="text-xl text-blue-200 mb-8">
               All ESG data is collected by verified committee members and stored on blockchain for complete transparency. Check if companies are following environmental guidelines.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-4 flex-wrap">
               <Link
                 to="/history"
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-2 shadow-lg shadow-blue-500/30"
@@ -83,10 +143,20 @@ function Dashboard() {
                 <span className="material-symbols-outlined">search</span>
                 View All Companies
               </Link>
-              <button className="px-6 py-3 bg-white/10 backdrop-blur-md text-white border-2 border-white/20 rounded-lg font-medium hover:bg-white/20 transition-colors inline-flex items-center gap-2">
+              <button
+                onClick={() => setShowVerifyModal(true)}
+                className="px-6 py-3 bg-white/10 backdrop-blur-md text-white border-2 border-white/20 rounded-lg font-medium hover:bg-white/20 transition-colors inline-flex items-center gap-2"
+              >
                 <span className="material-symbols-outlined">verified</span>
                 Verify on Blockchain
               </button>
+              <Link
+                to="/submit"
+                className="px-6 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors inline-flex items-center gap-2 shadow-lg shadow-emerald-500/30"
+              >
+                <span className="material-symbols-outlined">add_circle</span>
+                Submit ESG Data
+              </Link>
             </div>
           </div>
         </div>
@@ -134,8 +204,94 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Verify Modal */}
+      {showVerifyModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 rounded-2xl max-w-lg w-full border border-white/20">
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-white">Verify on Blockchain</h2>
+                <button
+                  onClick={() => {
+                    setShowVerifyModal(false)
+                    setVerifyHash('')
+                    setVerifyResult(null)
+                    setVerifyError(null)
+                  }}
+                  className="text-white/60 hover:text-white"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <p className="text-blue-200 mb-4">
+                Enter a transaction hash or record hash to verify its authenticity on the blockchain.
+              </p>
+              <input
+                type="text"
+                value={verifyHash}
+                onChange={(e) => setVerifyHash(e.target.value)}
+                placeholder="0x... (Transaction or Record Hash)"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+              />
+              <button
+                onClick={handleVerify}
+                disabled={isVerifying || !verifyHash.trim()}
+                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                {isVerifying ? (
+                  <>
+                    <span className="animate-spin material-symbols-outlined">refresh</span>
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined">verified</span>
+                    Verify
+                  </>
+                )}
+              </button>
+
+              {verifyError && (
+                <div className="mt-4 p-4 bg-red-500/20 border border-red-400/50 rounded-lg">
+                  <p className="text-red-300 text-sm">{verifyError}</p>
+                </div>
+              )}
+
+              {verifyResult && (
+                <div className="mt-4 p-4 bg-emerald-500/20 border border-emerald-400/50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="material-symbols-outlined text-emerald-400">verified</span>
+                    <span className="text-emerald-300 font-semibold">Record Verified!</span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <p className="text-white"><strong>Company:</strong> {verifyResult.company}</p>
+                    <p className="text-white"><strong>Emissions:</strong> {verifyResult.emissions} tonnes CO2e</p>
+                    <p className="text-white"><strong>Date:</strong> {verifyResult.date}</p>
+                    {verifyResult.blockNumber && (
+                      <p className="text-white"><strong>Block:</strong> {verifyResult.blockNumber}</p>
+                    )}
+                    <a
+                      href={getExplorerUrl(verifyResult.txHash)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 mt-2"
+                    >
+                      View on Explorer
+                      <span className="material-symbols-outlined text-sm">open_in_new</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 export default Dashboard
+

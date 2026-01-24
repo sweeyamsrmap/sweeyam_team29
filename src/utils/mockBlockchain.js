@@ -2,7 +2,8 @@
 export const generateTransactionHash = () => {
   const chars = '0123456789abcdef'
   let hash = '0x'
-  for (let i = 0; i < 40; i++) {
+  // Ethereum transaction hashes are 64 hex characters (32 bytes)
+  for (let i = 0; i < 64; i++) {
     hash += chars[Math.floor(Math.random() * chars.length)]
   }
   return hash
@@ -17,14 +18,15 @@ export const generateBatchId = () => {
 }
 
 export const mockBlockchainSubmit = async (data) => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 2000))
-  
+  // Simulate network delay (quick for demo)
+  await new Promise(resolve => setTimeout(resolve, 500))
+
   return {
     success: true,
     transactionHash: generateTransactionHash(),
+    recordHash: generateTransactionHash(),
     timestamp: new Date().toISOString(),
-    network: 'ESGChain L2 Mainnet',
+    network: 'Sepolia Testnet',
     blockNumber: Math.floor(Math.random() * 1000000) + 5000000,
     gasUsed: '0.00' + Math.floor(Math.random() * 99),
     data
@@ -33,16 +35,16 @@ export const mockBlockchainSubmit = async (data) => {
 
 export const mockVerifyProof = async (hash) => {
   await new Promise(resolve => setTimeout(resolve, 1500))
-  
-  // Check if hash format is valid
-  if (!hash.startsWith('0x') || hash.length !== 42) {
+
+  // Check if hash format is valid (64 hex chars after 0x = 66 total)
+  if (!hash.startsWith('0x') || hash.length !== 66) {
     return {
       success: false,
       verified: false,
       message: 'Invalid transaction hash format'
     }
   }
-  
+
   return {
     success: true,
     verified: true,
