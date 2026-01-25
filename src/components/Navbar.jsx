@@ -6,59 +6,35 @@ function Navbar() {
   const isActive = (path) => location.pathname === path
 
   return (
-    <nav className="bg-white border-b border-slate-200">
+    <nav className="bg-slate-900/40 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xl font-bold">E</span>
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/20">
+              <span className="text-white text-xl font-black italic">E</span>
             </div>
-            <span className="font-bold text-slate-900 text-lg">ESGChain</span>
+            <span className="font-black text-white text-lg tracking-tighter">ESGChain</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
-            <Link
-              to="/dashboard"
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive('/dashboard')
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/submit"
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive('/submit')
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-            >
-              Submit Data
-            </Link>
-            <Link
-              to="/history"
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive('/history')
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-            >
-              History
-            </Link>
-            <Link
-              to="/admin"
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive('/admin')
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-            >
-              Admin
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-              U
-            </div>
+          <div className="hidden md:flex items-center gap-2">
+            {[
+              { path: '/dashboard', label: 'Dashboard', icon: 'analytics' },
+              { path: '/submit', label: 'Submit', icon: 'upload_file' },
+              { path: '/history', label: 'History', icon: 'history' },
+              { path: '/admin', label: 'Admin', icon: 'shield_person' }
+            ].map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${isActive(item.path)
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                  : 'text-blue-200 hover:text-white hover:bg-white/5'
+                  }`}
+              >
+                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                {item.label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

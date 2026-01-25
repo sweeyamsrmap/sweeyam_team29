@@ -3,6 +3,8 @@ import { getExplorerUrl } from '../utils/blockchain'
 import { downloadPDFCertificate } from '../utils/pdfGenerator'
 
 function VerificationCertificate({ submission, onClose }) {
+  const isReal = submission.isRealBlockchain
+
   const handleDownloadPDF = () => {
     const proofData = {
       data: {
@@ -11,197 +13,169 @@ function VerificationCertificate({ submission, onClose }) {
         emissions: submission.emissions,
         energySource: submission.formData?.industrySector || 'General'
       },
-      network: submission.network || 'Sepolia Testnet',
+      network: isReal ? (submission.network || 'Sepolia Testnet') : 'Demo Mode (Local)',
       transactionHash: submission.txHash,
       recordHash: submission.recordHash,
       timestamp: submission.date
     }
-
     downloadPDFCertificate(proofData, `${submission.company}-ESG-Certificate.pdf`)
   }
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/20">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-600 to-blue-600 p-8 text-white relative">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
-          >
+      <div className="bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/20 shadow-2xl relative">
+        {/* Header Section */}
+        <div className={`p-8 text-white text-center relative ${isReal ? 'bg-gradient-to-br from-emerald-600/20 to-blue-600/20' : 'bg-gradient-to-br from-blue-600/20 to-slate-800/20'}`}>
+          <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors">
             <span className="material-symbols-outlined">close</span>
           </button>
-          <div className="text-center">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="material-symbols-outlined text-emerald-600 text-4xl">verified</span>
-            </div>
-            <h2 className="text-3xl font-bold mb-2">ESG Verification Certificate</h2>
-            <p className="text-emerald-100">Blockchain-Verified Environmental Data</p>
+          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl rotate-3">
+            <span className={`material-symbols-outlined ${isReal ? 'text-emerald-600' : 'text-blue-600'} text-4xl font-black`}>
+              {isReal ? 'verified' : 'fact_check'}
+            </span>
           </div>
+          <h2 className="text-3xl font-black tracking-tighter mb-1">ESG DATA PROOF</h2>
+          <p className="text-blue-300 text-sm font-bold uppercase tracking-widest opacity-80">Blockchain Verified Certificate</p>
         </div>
 
-        {/* Content */}
         <div className="p-8">
-          {/* QR Code */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-white p-4 rounded-xl border-4 border-emerald-600 shadow-lg shadow-emerald-500/50">
-              <QRCodeSVG
-                value={submission.txHash}
-                size={200}
-                level="H"
-                includeMargin={true}
-              />
-              <p className="text-center text-xs text-slate-600 mt-2">Scan to verify • TX: {submission.txHash?.slice(0, 10)}...</p>
+          {/* ESG Disclosure Label (Nutrition Style) */}
+          <div className="bg-white border-[6px] border-black p-4 text-black font-sans shadow-[8px_8px_0px_0px_rgba(0,0,0,0.3)] mb-10">
+            <h3 className="text-4xl font-black border-b-[10px] border-black pb-1 mb-2 tracking-tighter leading-none">ESG Disclosure</h3>
+            <div className="flex justify-between border-b-2 border-black py-1 font-black text-xs uppercase">
+              <span>Reporting Entity</span>
+              <span>{submission.company}</span>
             </div>
+            <div className="flex justify-between border-b-[6px] border-black py-1 font-black text-xs uppercase mb-4">
+              <span>Reporting Period</span>
+              <span>{submission.formData?.reportingYear || '2024'}</span>
+            </div>
+
+            {/* ENVIRONMENTAL SECTION */}
+            <div className="border-b-[10px] border-black mb-3">
+              <div className="flex justify-between items-end mb-1">
+                <span className="text-2xl font-black tracking-tighter">ENVIRONMENTAL</span>
+                <span className="text-[10px] font-black bg-black text-white px-2 py-0.5 mb-1 ml-2">CAT-E</span>
+              </div>
+              <div className="space-y-0.5 pb-2">
+                <div className="flex justify-between border-t-2 border-black py-1 text-sm font-black">
+                  <span>Scope 1 Emissions</span>
+                  <span>{submission.formData?.scope1Emissions?.value || submission.emissions} tCO2e</span>
+                </div>
+                <div className="flex justify-between border-t border-black py-1 text-sm font-bold pl-4">
+                  <span>Scope 2 Emissions</span>
+                  <span>{submission.formData?.scope2Emissions?.value || '0'} tCO2e</span>
+                </div>
+                {submission.formData?.additionalEnvironmental?.map((p, i) => (
+                  <div key={i} className="flex justify-between border-t border-black py-1 text-xs font-medium pl-4">
+                    <span>{p.type} Emission</span>
+                    <span>{p.quantity} {p.unit}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* SOCIAL SECTION */}
+            <div className="border-b-[10px] border-black mb-3">
+              <div className="flex justify-between items-end mb-1">
+                <span className="text-2xl font-black tracking-tighter">SOCIAL IMPACT</span>
+                <span className="text-[10px] font-black bg-black text-white px-2 py-0.5 mb-1 ml-2">CAT-S</span>
+              </div>
+              <div className="space-y-0.5 pb-2">
+                <div className="flex justify-between border-t-2 border-black py-1 text-sm font-black">
+                  <span>Gender Pay Gap</span>
+                  <span>{submission.formData?.social?.employeeWelfare?.genderPayGap?.value || 'N/A'}%</span>
+                </div>
+                <div className="flex justify-between border-t border-black py-1 text-sm font-bold pl-4">
+                  <span>Employee Turnover</span>
+                  <span>{submission.formData?.social?.employeeWelfare?.turnoverRate?.value || 'N/A'}%</span>
+                </div>
+                <div className="flex justify-between border-t border-black py-1 text-sm font-bold pl-4">
+                  <span>Minority Representation</span>
+                  <span>{submission.formData?.social?.diversityInclusion?.minorityRepresentation?.value || 'N/A'}%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* GOVERNANCE SECTION */}
+            <div className="border-b-[6px] border-black mb-4">
+              <div className="flex justify-between items-end mb-1">
+                <span className="text-2xl font-black tracking-tighter">GOVERNANCE</span>
+                <span className="text-[10px] font-black bg-black text-white px-2 py-0.5 mb-1 ml-2">CAT-G</span>
+              </div>
+              <div className="space-y-0.5 pb-2">
+                <div className="flex justify-between border-t-2 border-black py-1 text-sm font-black">
+                  <span>Independent Board</span>
+                  <span>{submission.formData?.governance?.corporate?.independentDirectors?.value || 'N/A'}%</span>
+                </div>
+                <div className="flex justify-between border-t border-black py-1 text-sm font-bold pl-4">
+                  <span>Audit Frequency</span>
+                  <span>{submission.formData?.governance?.transparency?.auditFrequency?.value || 'Periodic'}</span>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[9px] leading-none mb-1 font-bold uppercase">Ingredients: Transparency, Accountability, Blockchain Integrity.</p>
+            <p className="text-[8px] leading-tight opacity-70 italic font-medium">
+              * Claimed values are self-reported by the entity. Blockchain anchoring hash provides proof of existence at the time of report. Verification status available on explorer.
+            </p>
           </div>
 
-          {/* Certificate Details */}
-          <div className="space-y-4">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20">
-              <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-400">business</span>
-                Company Information
-              </h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-blue-300">Company Name</p>
-                  <p className="font-semibold text-white">{submission.company}</p>
-                </div>
-                <div>
-                  <p className="text-blue-300">Industry Sector</p>
-                  <p className="font-semibold text-white">
-                    {submission.formData?.industrySector || 'General'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-blue-300">Reporting Year</p>
-                  <p className="font-semibold text-white">
-                    {submission.formData?.reportingYear || '2024'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-blue-300">Registration ID</p>
-                  <p className="font-semibold text-white">
-                    {submission.formData?.registrationId || 'N/A'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20">
-              <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-400">eco</span>
-                Environmental Metrics
-              </h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-blue-300">Total Emissions</p>
-                  <p className="font-semibold text-white">{submission.emissions} tonnes CO2e</p>
-                </div>
-                <div>
-                  <p className="text-blue-300">Scope 1 Emissions</p>
-                  <p className="font-semibold text-white">
-                    {submission.formData?.scope1Emissions || 'N/A'} tonnes CO2e
-                  </p>
-                </div>
-                <div>
-                  <p className="text-blue-300">Scope 2 Emissions</p>
-                  <p className="font-semibold text-white">
-                    {submission.formData?.scope2Emissions || 'N/A'} tonnes CO2e
-                  </p>
-                </div>
-                <div>
-                  <p className="text-blue-300">Energy Usage</p>
-                  <p className="font-semibold text-white">
-                    {submission.formData?.totalEnergyUsage || 'N/A'} MWh
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20">
-              <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-purple-400">link</span>
-                Blockchain Verification
-              </h3>
-              <div className="space-y-3 text-sm">
-                <div>
-                  <p className="text-blue-300 mb-1">Transaction Hash</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 bg-white/5 px-3 py-2 rounded border border-white/20 text-xs font-mono text-blue-300">
-                      {submission.txHash}
-                    </code>
-                    <a
-                      href={getExplorerUrl(submission.txHash)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1 shadow-lg shadow-blue-500/30"
-                    >
+          {/* Technical Proofs */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-white/5 p-6 rounded-2xl border border-white/10">
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">On-Chain Evidence</label>
+                <div className="flex items-center gap-2 mt-2">
+                  <code className="bg-black/40 text-blue-300 p-2 rounded text-[10px] border border-white/10 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                    {submission.txHash}
+                  </code>
+                  {isReal && (
+                    <a href={getExplorerUrl(submission.txHash)} target="_blank" rel="noopener noreferrer" className="bg-blue-600 text-white p-2 rounded hover:bg-blue-500">
                       <span className="material-symbols-outlined text-sm">open_in_new</span>
                     </a>
-                  </div>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-blue-300">Network</p>
-                    <p className="font-semibold text-white">{submission.network}</p>
-                  </div>
-                  <div>
-                    <p className="text-blue-300">Block Number</p>
-                    <p className="font-semibold text-white">{submission.blockNumber}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-blue-300">Verification Date</p>
-                    <p className="font-semibold text-white">{submission.date}</p>
-                  </div>
+              </div>
+              <div className="flex gap-4">
+                <div>
+                  <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-1">Network</label>
+                  <span className="text-white text-xs font-bold">{isReal ? (submission.network || 'Sepolia') : 'Local Demo'}</span>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-1">Status</label>
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-black ${isReal ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-200'}`}>
+                    {isReal ? 'ANCHORED' : 'REGISTERED'}
+                  </span>
                 </div>
               </div>
             </div>
-
-            {submission.certificateId && (
-              <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-md rounded-lg p-4 border border-yellow-400/50">
-                <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-yellow-400">workspace_premium</span>
-                  NFT Certificate
-                </h3>
-                <p className="text-sm text-yellow-200 mb-2">
-                  This submission has been minted as an NFT certificate.
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-yellow-300">Certificate ID:</span>
-                  <code className="bg-white/10 px-2 py-1 rounded text-sm font-mono text-yellow-200">
-                    #{submission.certificateId}
-                  </code>
-                </div>
-              </div>
-            )}
+            <div className="flex flex-col items-center justify-center bg-white p-3 rounded-xl border-4 border-black">
+              <QRCodeSVG
+                value={isReal ? submission.txHash : `DEMO-${submission.company}`}
+                size={120}
+                level="H"
+              />
+              <p className="text-[8px] font-black text-black mt-2 font-mono uppercase">Scan to Verify Record</p>
+            </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 mt-8">
+          <div className="grid grid-cols-2 gap-4 mt-8">
             <button
               onClick={handleDownloadPDF}
-              className="flex-1 px-6 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30"
+              className="px-6 py-4 bg-emerald-600 text-white rounded-xl font-black text-sm hover:bg-emerald-500 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
             >
               <span className="material-symbols-outlined">download</span>
-              Download PDF Certificate
+              DOWNLOAD PDF
             </button>
-            <a
-              href={getExplorerUrl(submission.txHash)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30"
+            <button
+              onClick={onClose}
+              className="px-6 py-4 bg-white/5 text-white border border-white/10 rounded-xl font-black text-sm hover:bg-white/10 transition-all uppercase"
             >
-              <span className="material-symbols-outlined">open_in_new</span>
-              View on Blockchain
-            </a>
+              Close
+            </button>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="bg-white/5 backdrop-blur-md px-8 py-4 text-center text-sm text-blue-200 border-t border-white/20">
-          <p>This certificate is cryptographically verified on the Ethereum blockchain</p>
-          <p className="text-xs mt-1 text-blue-300">Powered by ESGChain • Immutable • Transparent • Verifiable</p>
         </div>
       </div>
     </div>

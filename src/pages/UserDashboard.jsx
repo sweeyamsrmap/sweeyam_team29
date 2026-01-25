@@ -103,28 +103,28 @@ function UserDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+        <div className="min-h-screen bg-transparent">
             {/* Header */}
             <div className="bg-white/5 backdrop-blur-sm border-b border-white/10">
-                <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white text-xl font-bold">E</span>
+                        <div className="flex items-center gap-2 sm:gap-4">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                                <span className="text-white text-lg sm:text-xl font-bold">E</span>
                             </div>
                             <div>
-                                <h1 className="text-xl font-bold text-white">ESGChain</h1>
-                                <p className="text-xs text-blue-300">USER DASHBOARD</p>
+                                <h1 className="text-lg sm:text-xl font-bold text-white">ESGChain</h1>
+                                <p className="text-xs text-blue-300 hidden sm:block">USER DASHBOARD</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 sm:gap-4">
                             <WalletConnect />
                             <button
                                 onClick={handleLogout}
-                                className="px-4 py-2 text-blue-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-2"
+                                className="p-2 sm:px-4 sm:py-2 text-blue-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-2"
                             >
                                 <span className="material-symbols-outlined text-sm">logout</span>
-                                Logout
+                                <span className="hidden sm:inline">Logout</span>
                             </button>
                         </div>
                     </div>
@@ -132,55 +132,55 @@ function UserDashboard() {
             </div>
 
             {/* Hero */}
-            <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
-                <div className="mb-8">
-                    <h2 className="text-4xl font-bold text-white mb-2">Welcome to ESGChain</h2>
-                    <p className="text-blue-200 text-lg">View verified ESG data from companies, stored on blockchain for transparency</p>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+                <div className="mb-6 sm:mb-8">
+                    <h2 className="text-2xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">Welcome to ESGChain</h2>
+                    <p className="text-blue-200 text-sm sm:text-lg">View verified ESG data stored on blockchain</p>
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
                     {stats.map((stat, index) => (
-                        <div key={index} className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 hover:shadow-2xl hover:shadow-blue-500/20 transition-all cursor-pointer hover:scale-105">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className={`w-12 h-12 ${colorClasses[stat.color]} rounded-lg flex items-center justify-center`}>
-                                    <span className="material-symbols-outlined text-2xl">{stat.icon}</span>
+                        <div key={index} className="bg-white/10 backdrop-blur-md rounded-xl p-4 sm:p-6 border border-white/20 hover:shadow-2xl hover:shadow-blue-500/20 transition-all">
+                            <div className="flex items-start justify-between mb-2 sm:mb-4">
+                                <div className={`w-10 h-10 sm:w-12 sm:h-12 ${colorClasses[stat.color]} rounded-lg flex items-center justify-center`}>
+                                    <span className="material-symbols-outlined text-xl sm:text-2xl">{stat.icon}</span>
                                 </div>
                             </div>
-                            <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
-                            <div className="text-sm text-blue-200">{stat.label}</div>
+                            <div className="text-xl sm:text-3xl font-bold text-white mb-1">{stat.value}</div>
+                            <div className="text-xs sm:text-sm text-blue-200">{stat.label}</div>
                         </div>
                     ))}
                 </div>
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
                     <Link
                         to="/history"
-                        className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 hover:from-blue-500 hover:to-blue-600 transition-all group"
+                        className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-4 sm:p-6 hover:from-blue-500 hover:to-blue-600 transition-all group"
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <span className="material-symbols-outlined text-white text-3xl">search</span>
+                        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <span className="material-symbols-outlined text-white text-2xl sm:text-3xl">search</span>
                             </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-white">View Companies</h3>
-                                <p className="text-blue-200 text-sm">Browse all ESG data</p>
+                            <div className="text-center sm:text-left">
+                                <h3 className="text-sm sm:text-xl font-bold text-white">Companies</h3>
+                                <p className="text-blue-200 text-xs hidden sm:block">Browse ESG data</p>
                             </div>
                         </div>
                     </Link>
 
                     <button
                         onClick={() => setShowVerifyModal(true)}
-                        className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-xl p-6 hover:from-emerald-500 hover:to-emerald-600 transition-all group text-left"
+                        className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-xl p-4 sm:p-6 hover:from-emerald-500 hover:to-emerald-600 transition-all group"
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <span className="material-symbols-outlined text-white text-3xl">verified</span>
+                        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <span className="material-symbols-outlined text-white text-2xl sm:text-3xl">verified</span>
                             </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-white">Verify Data</h3>
-                                <p className="text-emerald-200 text-sm">Check records</p>
+                            <div className="text-center sm:text-left">
+                                <h3 className="text-sm sm:text-xl font-bold text-white">Verify</h3>
+                                <p className="text-emerald-200 text-xs hidden sm:block">Check records</p>
                             </div>
                         </div>
                     </button>
@@ -188,15 +188,15 @@ function UserDashboard() {
                     {/* QR Scan Button */}
                     <button
                         onClick={() => setShowQRScanner(true)}
-                        className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl p-6 hover:from-orange-500 hover:to-orange-600 transition-all group text-left"
+                        className="bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl p-4 sm:p-6 hover:from-orange-500 hover:to-orange-600 transition-all group"
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <span className="material-symbols-outlined text-white text-3xl">qr_code_scanner</span>
+                        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <span className="material-symbols-outlined text-white text-2xl sm:text-3xl">qr_code_scanner</span>
                             </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-white">Scan QR</h3>
-                                <p className="text-orange-200 text-sm">Scan certificate</p>
+                            <div className="text-center sm:text-left">
+                                <h3 className="text-sm sm:text-xl font-bold text-white">Scan QR</h3>
+                                <p className="text-orange-200 text-xs hidden sm:block">Certificate</p>
                             </div>
                         </div>
                     </button>
@@ -205,15 +205,15 @@ function UserDashboard() {
                         href="https://sepolia.etherscan.io/address/0x82a762A808760ad4330Cca3aEf7871519A80EFCb"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-6 hover:from-purple-500 hover:to-purple-600 transition-all group"
+                        className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-4 sm:p-6 hover:from-purple-500 hover:to-purple-600 transition-all group"
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <span className="material-symbols-outlined text-white text-3xl">open_in_new</span>
+                        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <span className="material-symbols-outlined text-white text-2xl sm:text-3xl">open_in_new</span>
                             </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-white">View Contract</h3>
-                                <p className="text-purple-200 text-sm">On Etherscan</p>
+                            <div className="text-center sm:text-left">
+                                <h3 className="text-sm sm:text-xl font-bold text-white">Contract</h3>
+                                <p className="text-purple-200 text-xs hidden sm:block">Etherscan</p>
                             </div>
                         </div>
                     </a>

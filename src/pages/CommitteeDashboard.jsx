@@ -4,11 +4,13 @@ import { useWallet } from '../hooks/useWallet'
 import WalletConnect from '../components/WalletConnect'
 import { getExplorerUrl, submitESGData } from '../utils/blockchain'
 import { useApp } from '../context/AppContext'
+import { useNotification } from '../context/NotificationContext'
 
 function CommitteeDashboard() {
     const { isConnected, address } = useWallet()
     const navigate = useNavigate()
     const { setRole } = useApp()
+    const notification = useNotification()
     const [realStats, setRealStats] = useState({
         totalSubmissions: 0,
         verifiedRecords: 0,
@@ -132,6 +134,7 @@ function CommitteeDashboard() {
             localStorage.setItem('esg_submissions', JSON.stringify(submissions))
 
             setSubmitResult({ ...result, isRealBlockchain })
+            notification.success('ESG data submitted successfully!')
             setFormData({
                 companyName: '',
                 registrationId: '',
@@ -164,7 +167,7 @@ function CommitteeDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+        <div className="min-h-screen bg-transparent">
             {/* Header */}
             <div className="bg-white/5 backdrop-blur-sm border-b border-white/10">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">

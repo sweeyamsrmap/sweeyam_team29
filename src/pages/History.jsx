@@ -33,8 +33,43 @@ function History() {
         )
     })
 
+    const exportToCSV = () => {
+        if (filteredSubmissions.length === 0) return
+
+        const headers = ['Company', 'Emissions (tCO2e)', 'Transaction Hash', 'Date', 'Network', 'Industry']
+        const csvRows = [
+            headers.join(','),
+            ...filteredSubmissions.map(sub => [
+                `"${sub.company}"`,
+                sub.emissions,
+                sub.txHash,
+                sub.date,
+                sub.network,
+                `"${sub.formData?.industrySector || 'General'}"`
+            ].join(','))
+        ]
+
+        const csvString = csvRows.join('\n')
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
+        const link = document.createElement('a')
+        const url = URL.createObjectURL(blob)
+        link.setAttribute('href', url)
+        link.setAttribute('download', 'ESGChain_Records.csv')
+        link.style.visibility = 'hidden'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
+
+    const clearHistory = () => {
+        if (window.confirm('Are you sure you want to clear all LOCAL history? On-chain records will NOT be deleted.')) {
+            localStorage.removeItem('esg_submissions')
+            setSubmissions([])
+        }
+    }
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+        <div className="min-h-screen bg-transparent">
             {/* Header */}
             <div className="bg-white/5 backdrop-blur-sm border-b border-white/10">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
@@ -47,7 +82,24 @@ function History() {
                             <h1 className="text-4xl font-bold text-white mt-2">Company ESG History</h1>
                             <p className="text-blue-200 mt-2">View all verified ESG submissions stored on the blockchain</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col items-end gap-3">
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={exportToCSV}
+                                    disabled={filteredSubmissions.length === 0}
+                                    className="px-4 py-2 bg-emerald-600/20 text-emerald-400 border border-emerald-400/30 rounded-lg text-sm font-medium hover:bg-emerald-600/30 transition-colors flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    <span className="material-symbols-outlined text-sm">download</span>
+                                    Export CSV
+                                </button>
+                                <button
+                                    onClick={clearHistory}
+                                    className="px-4 py-2 bg-red-600/20 text-red-400 border border-red-400/30 rounded-lg text-sm font-medium hover:bg-red-600/30 transition-colors flex items-center gap-2"
+                                >
+                                    <span className="material-symbols-outlined text-sm">delete_sweep</span>
+                                    Clear Local
+                                </button>
+                            </div>
                             <span className="text-blue-300 text-sm">{filteredSubmissions.length} records found</span>
                         </div>
                     </div>

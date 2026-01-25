@@ -186,6 +186,95 @@ function Dashboard() {
           ))}
         </div>
 
+        {/* Smart Analytics Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+          {/* Sustainability Score */}
+          <div className="lg:col-span-1 bg-white/10 backdrop-blur-md rounded-xl p-8 border border-white/20 flex flex-col items-center justify-center text-center">
+            <h3 className="text-lg font-semibold text-white mb-6">Transparency Score</h3>
+            <div className="relative w-48 h-48 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="96"
+                  cy="96"
+                  r="80"
+                  stroke="currentColor"
+                  strokeWidth="12"
+                  fill="transparent"
+                  className="text-white/5"
+                />
+                <circle
+                  cx="96"
+                  cy="96"
+                  r="80"
+                  stroke="currentColor"
+                  strokeWidth="12"
+                  fill="transparent"
+                  strokeDasharray={502.4}
+                  strokeDashoffset={502.4 - (502.4 * (realStats.verifiedRecords / Math.max(realStats.totalSubmissions, 1)))}
+                  className="text-emerald-500 transition-all duration-1000 ease-out"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-4xl font-bold text-white">
+                  {Math.round((realStats.verifiedRecords / Math.max(realStats.totalSubmissions, 1)) * 100)}%
+                </span>
+                <span className="text-xs text-blue-300 uppercase tracking-widest mt-1">On-Chain</span>
+              </div>
+            </div>
+            <p className="text-sm text-blue-200 mt-6">
+              Ratio of records successfully verified on the blockchain vs local storage.
+            </p>
+          </div>
+
+          {/* Progress to Net Zero */}
+          <div className="lg:col-span-2 bg-white/10 backdrop-blur-md rounded-xl p-8 border border-white/20">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h3 className="text-xl font-bold text-white">Platform Emission Goal</h3>
+                <p className="text-blue-300 text-sm">Target vs Actual tracked emissions</p>
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-blue-400 font-bold uppercase">Target: 1M tonnes</span>
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              <div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-blue-200">Total Tracked Emissions</span>
+                  <span className="text-white font-bold">{realStats.totalEmissions} tCO2e</span>
+                </div>
+                <div className="w-full h-4 bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-500 via-emerald-500 to-teal-400 rounded-full transition-all duration-1000"
+                    style={{ width: `${Math.min((parseFloat(realStats.totalEmissions) / 10000) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="flex items-center gap-2 text-blue-300 text-xs mb-1">
+                    <span className="material-symbols-outlined text-sm">trending_down</span>
+                    INTENSITY TREND
+                  </div>
+                  <div className="text-xl font-bold text-emerald-400">-12.4%</div>
+                  <div className="text-[10px] text-blue-400 mt-1">Avg. reduction per company</div>
+                </div>
+                <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="flex items-center gap-2 text-blue-300 text-xs mb-1">
+                    <span className="material-symbols-outlined text-sm">bolt</span>
+                    ENERGY MIX
+                  </div>
+                  <div className="text-xl font-bold text-blue-400">42%</div>
+                  <div className="text-[10px] text-blue-400 mt-1">Renewable energy ratio</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Info Section */}
         <div className="bg-gradient-to-r from-blue-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl p-8 border border-blue-400/30">
           <div className="flex items-start gap-4">
