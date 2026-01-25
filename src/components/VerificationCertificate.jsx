@@ -121,6 +121,36 @@ function VerificationCertificate({ submission, onClose }) {
             </p>
           </div>
 
+          {/* Admin Audit Section */}
+          {submission.audit?.audited && (
+            <div className="mb-8 p-4 rounded-xl border-2 border-emerald-500/30 bg-emerald-500/5">
+              <h4 className="text-xs font-black text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">verified</span>
+                Admin Audit
+              </h4>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                <div className="flex justify-between border-b border-white/10 py-1">
+                  <span className="text-blue-300 font-bold">Decision</span>
+                  <span className={`font-black ${submission.audit.decision === 'APPROVED & VERIFIED' ? 'text-emerald-400' : submission.audit.decision === 'DATA DISPUTED' ? 'text-red-400' : 'text-amber-400'}`}>
+                    {submission.audit.decision}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-white/10 py-1">
+                  <span className="text-blue-300 font-bold">Audited</span>
+                  <span className="text-white font-medium">
+                    {submission.audit.auditedAt ? new Date(submission.audit.auditedAt).toLocaleString() : '—'}
+                  </span>
+                </div>
+                {[['Scope 1', submission.audit.verifiedScope1], ['Scope 2', submission.audit.verifiedScope2], ['Pay Gap %', submission.audit.verifiedPayGap], ['Turnover %', submission.audit.verifiedTurnover], ['Diversity %', submission.audit.verifiedDiversity], ['Indep. Board %', submission.audit.verifiedIndepBoard]].filter(([, v]) => v != null && v !== '').map(([label, val]) => (
+                  <div key={label} className="flex justify-between border-b border-white/10 py-1 col-span-2 md:col-span-1">
+                    <span className="text-blue-300 font-bold">Verified {label}</span>
+                    <span className="text-white font-medium">{val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Technical Proofs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-white/5 p-6 rounded-2xl border border-white/10">
             <div className="space-y-4">
@@ -137,7 +167,7 @@ function VerificationCertificate({ submission, onClose }) {
                   )}
                 </div>
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-4">
                 <div>
                   <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-1">Network</label>
                   <span className="text-white text-xs font-bold">{isReal ? (submission.network || 'Sepolia') : 'Local Demo'}</span>
@@ -148,6 +178,17 @@ function VerificationCertificate({ submission, onClose }) {
                     {isReal ? 'ANCHORED' : 'REGISTERED'}
                   </span>
                 </div>
+                {submission.audit?.audited && (
+                  <div>
+                    <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-1">Audit</label>
+                    <span className={`text-[10px] px-2 py-0.5 rounded font-black ${
+                      submission.audit.decision === 'APPROVED & VERIFIED' ? 'bg-emerald-500/20 text-emerald-400' :
+                      submission.audit.decision === 'DATA DISPUTED' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'
+                    }`}>
+                      {submission.audit.decision === 'APPROVED & VERIFIED' ? 'APPROVED' : submission.audit.decision === 'DATA DISPUTED' ? 'DISPUTED' : 'INSUFFICIENT'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex flex-col items-center justify-center bg-white p-3 rounded-xl border-4 border-black">

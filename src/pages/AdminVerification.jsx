@@ -1,16 +1,29 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useNotification } from '../context/NotificationContext'
 import { getExplorerUrl } from '../utils/blockchain'
 import VerificationCertificate from '../components/VerificationCertificate'
+
+const AUDIT_DECISIONS = ['APPROVED & VERIFIED', 'DATA DISPUTED', 'INSUFFICIENT EVIDENCE']
 
 function AdminVerification() {
   const [activeFilter, setActiveFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSubmission, setSelectedSubmission] = useState(null)
   const [verifyingSubmission, setVerifyingSubmission] = useState(null)
+  const [auditForm, setAuditForm] = useState({
+    verifiedScope1: '',
+    verifiedScope2: '',
+    verifiedPayGap: '',
+    verifiedTurnover: '',
+    verifiedDiversity: '',
+    verifiedIndepBoard: '',
+    decision: 'APPROVED & VERIFIED'
+  })
   const navigate = useNavigate()
   const { setRole } = useApp()
+  const notification = useNotification()
   const [submissions, setSubmissions] = useState([])
 
   useEffect(() => {
@@ -22,6 +35,21 @@ function AdminVerification() {
     const interval = setInterval(loadSubmissions, 1000)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    if (verifyingSubmission) {
+      const a = verifyingSubmission.audit
+      setAuditForm({
+        verifiedScope1: a?.verifiedScope1 ?? '',
+        verifiedScope2: a?.verifiedScope2 ?? '',
+        verifiedPayGap: a?.verifiedPayGap ?? '',
+        verifiedTurnover: a?.verifiedTurnover ?? '',
+        verifiedDiversity: a?.verifiedDiversity ?? '',
+        verifiedIndepBoard: a?.verifiedIndepBoard ?? '',
+        decision: a?.decision ?? 'APPROVED & VERIFIED'
+      })
+    }
+  }, [verifyingSubmission])
 
   const handleLogout = () => {
     setRole(null)
@@ -46,6 +74,12 @@ function AdminVerification() {
       case 'onchain':
         filtered = filtered.filter(s => s.isRealBlockchain === true)
         break
+      case 'pending':
+        filtered = filtered.filter(s => !s.audit?.audited)
+        break
+      case 'audited':
+        filtered = filtered.filter(s => s.audit?.audited === true)
+        break
       default: break
     }
     return filtered
@@ -53,11 +87,45 @@ function AdminVerification() {
 
   const filteredSubmissions = getFilteredSubmissions()
 
+  const updateAuditForm = (field, value) => {
+    setAuditForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleFinalizeAudit = () => {
+    if (!verifyingSubmission) return
+    const audit = {
+      audited: true,
+      auditedAt: new Date().toISOString(),
+      decision: auditForm.decision,
+      verifiedScope1: auditForm.verifiedScope1,
+      verifiedScope2: auditForm.verifiedScope2,
+      verifiedPayGap: auditForm.verifiedPayGap,
+      verifiedTurnover: auditForm.verifiedTurnover,
+      verifiedDiversity: auditForm.verifiedDiversity,
+      verifiedIndepBoard: auditForm.verifiedIndepBoard
+    }
+    const list = JSON.parse(localStorage.getItem('esg_submissions') || '[]')
+    const updated = list.map(s =>
+      s.txHash === verifyingSubmission.txHash ? { ...s, audit } : s
+    )
+    localStorage.setItem('esg_submissions', JSON.stringify(updated))
+    setSubmissions(updated)
+    setVerifyingSubmission(null)
+    notification.success(`Audit finalized: ${auditForm.decision}. ${verifyingSubmission.company} updated.`)
+  }
+
   const handleExportCSV = () => {
     if (filteredSubmissions.length === 0) return
-    const headers = ['Company', 'Emissions', 'Industry', 'Date', 'TX Hash', 'On-Chain']
+    const headers = ['Company', 'Emissions', 'Industry', 'Date', 'TX Hash', 'On-Chain', 'Audit Status']
+    const auditStatus = (s) => {
+      if (!s.audit?.audited) return 'PENDING'
+      if (s.audit.decision === 'APPROVED & VERIFIED') return 'APPROVED'
+      if (s.audit.decision === 'DATA DISPUTED') return 'DISPUTED'
+      if (s.audit.decision === 'INSUFFICIENT EVIDENCE') return 'INSUFFICIENT'
+      return 'AUDITED'
+    }
     const rows = filteredSubmissions.map(s => [
-      s.company, s.emissions, s.formData?.industrySector || 'General', s.date, s.txHash, s.isRealBlockchain ? 'Yes' : 'No'
+      s.company, s.emissions, s.formData?.industrySector || 'General', s.date, s.txHash, s.isRealBlockchain ? 'Yes' : 'No', auditStatus(s)
     ])
     const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -69,6 +137,8 @@ function AdminVerification() {
 
   const filters = [
     { id: 'all', label: 'All', count: submissions.length },
+    { id: 'pending', label: 'Pending', count: submissions.filter(s => !s.audit?.audited).length, color: 'amber' },
+    { id: 'audited', label: 'Audited', count: submissions.filter(s => s.audit?.audited).length, color: 'green' },
     { id: 'onchain', label: 'Blockchain', count: submissions.filter(s => s.isRealBlockchain).length, color: 'green' },
     { id: 'high-priority', label: 'Priority', count: submissions.filter(s => parseFloat(s.emissions) > 1000).length, color: 'red' },
   ]
@@ -198,7 +268,17 @@ function AdminVerification() {
                     </div>
                     <div>
                       <p className="text-[10px] text-blue-400 font-bold uppercase mb-1">Status</p>
-                      <p className="text-sm font-black text-emerald-400">✓ VERIFIED</p>
+                      {!submission.audit?.audited ? (
+                        <p className="text-sm font-black text-amber-400">PENDING AUDIT</p>
+                      ) : submission.audit.decision === 'APPROVED & VERIFIED' ? (
+                        <p className="text-sm font-black text-emerald-400">✓ APPROVED</p>
+                      ) : submission.audit.decision === 'DATA DISPUTED' ? (
+                        <p className="text-sm font-black text-red-400">DISPUTED</p>
+                      ) : submission.audit.decision === 'INSUFFICIENT EVIDENCE' ? (
+                        <p className="text-sm font-black text-amber-400">INSUFFICIENT</p>
+                      ) : (
+                        <p className="text-sm font-black text-emerald-400">✓ AUDITED</p>
+                      )}
                     </div>
                   </div>
 
@@ -243,16 +323,16 @@ function AdminVerification() {
                 <h3 className="text-emerald-400 font-black mb-4 flex items-center gap-2 uppercase text-xs tracking-widest">
                   <span className="material-symbols-outlined text-sm">eco</span> Environmental Audit
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-blue-300 uppercase">Scope 1 (Claimed: {verifyingSubmission.formData?.scope1Emissions?.value || verifyingSubmission.emissions})</label>
-                    <input type="number" placeholder="Verified Value" className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-emerald-500" />
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-blue-300 uppercase">Scope 1 (Claimed: {verifyingSubmission.formData?.scope1Emissions?.value || verifyingSubmission.emissions})</label>
+                      <input type="number" placeholder="Verified Value" value={auditForm.verifiedScope1} onChange={(e) => updateAuditForm('verifiedScope1', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-emerald-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-blue-300 uppercase">Scope 2 (Claimed: {verifyingSubmission.formData?.scope2Emissions?.value || '0'})</label>
+                      <input type="number" placeholder="Verified Value" value={auditForm.verifiedScope2} onChange={(e) => updateAuditForm('verifiedScope2', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-emerald-500" />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-blue-300 uppercase">Scope 2 (Claimed: {verifyingSubmission.formData?.scope2Emissions?.value || '0'})</label>
-                    <input type="number" placeholder="Verified Value" className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-emerald-500" />
-                  </div>
-                </div>
               </div>
 
               {/* S Section */}
@@ -263,15 +343,15 @@ function AdminVerification() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-blue-300 uppercase">Pay Gap ({verifyingSubmission.formData?.social?.employeeWelfare?.genderPayGap?.value || 'N/A'}%)</label>
-                    <input type="number" placeholder="Verified %" className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-orange-500" />
+                    <input type="number" placeholder="Verified %" value={auditForm.verifiedPayGap} onChange={(e) => updateAuditForm('verifiedPayGap', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-orange-500" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-blue-300 uppercase">Turnover ({verifyingSubmission.formData?.social?.employeeWelfare?.turnoverRate?.value || 'N/A'}%)</label>
-                    <input type="number" placeholder="Verified %" className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-orange-500" />
+                    <input type="number" placeholder="Verified %" value={auditForm.verifiedTurnover} onChange={(e) => updateAuditForm('verifiedTurnover', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-orange-500" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-blue-300 uppercase">Diversity ({verifyingSubmission.formData?.social?.diversityInclusion?.minorityRepresentation?.value || 'N/A'}%)</label>
-                    <input type="number" placeholder="Verified %" className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-orange-500" />
+                    <input type="number" placeholder="Verified %" value={auditForm.verifiedDiversity} onChange={(e) => updateAuditForm('verifiedDiversity', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-orange-500" />
                   </div>
                 </div>
               </div>
@@ -284,14 +364,12 @@ function AdminVerification() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-blue-300 uppercase">Indep. Board %</label>
-                    <input type="number" placeholder="Verified %" className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-blue-500" />
+                    <input type="number" placeholder="Verified %" value={auditForm.verifiedIndepBoard} onChange={(e) => updateAuditForm('verifiedIndepBoard', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-blue-500" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-blue-300 uppercase">Decision Status</label>
-                    <select className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-blue-500">
-                      <option>APPROVED & VERIFIED</option>
-                      <option>DATA DISPUTED</option>
-                      <option>INSUFFICIENT EVIDENCE</option>
+                    <select value={auditForm.decision} onChange={(e) => updateAuditForm('decision', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-blue-500">
+                      {AUDIT_DECISIONS.map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
                   </div>
                 </div>
@@ -299,10 +377,7 @@ function AdminVerification() {
 
               <div className="flex gap-4 pt-4">
                 <button
-                  onClick={() => {
-                    alert('Audit successfully signed and anchored to record.');
-                    setVerifyingSubmission(null);
-                  }}
+                  onClick={handleFinalizeAudit}
                   className="flex-1 bg-emerald-600 text-white py-4 rounded-xl font-black hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-500/20"
                 >
                   FINALIZE & ANCHOR VERIFICATION
